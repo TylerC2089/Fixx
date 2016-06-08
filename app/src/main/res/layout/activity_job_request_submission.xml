@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.fixx.fixx.fixx.jobRequestSubmissionActivity">
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="100dp"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/description"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:hint="Enter Problem Description" />
+
+    <CalendarView
+        android:layout_width="fill_parent"
+        android:layout_height="200dp"
+        android:id="@+id/calendarView"
+        android:layout_below="@+id/description"
+        android:layout_centerHorizontal="true"
+        android:clickable="true" />
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:id="@+id/button4"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:clickable="false" />
+
+    <TimePicker
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/timePicker"
+        android:layout_above="@+id/button4"
+        android:layout_alignParentLeft="true"
+        android:visibility="visible" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"
+        android:layout_above="@+id/button4"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/timePicker"
+        android:layout_alignTop="@+id/timePicker"
+        android:spinnerMode="dropdown"
+        android:visibility="visible" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:id="@+id/categoryOptions">
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="100dp"
+            android:text="Property"
+            android:id="@+id/propertyButton"
+            android:background="#ca843e"
+            android:textSize="20pt"
+            android:onClick="setCategory" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="100dp"
+            android:text="Utility"
+            android:id="@+id/utilityButton"
+            android:background="#c7a63b"
+            android:textSize="20pt"
+            android:onClick="setCategory" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="100dp"
+            android:text="Appliance"
+            android:id="@+id/applianceButton"
+            android:background="#5c789e"
+            android:textSize="20pt"
+            android:onClick="setCategory" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="100dp"
+            android:text="Structure"
+            android:id="@+id/structureButton"
+            android:background="#66b453"
+            android:textSize="20pt"
+            android:onClick="setCategory" />
+
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/imageView"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:background="#959595" />
+
+    </LinearLayout>
+
+</RelativeLayout>
