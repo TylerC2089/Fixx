@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -10,19 +11,67 @@
     tools:context="com.fixx.fixx.fixx.loginActivity">
 
     <EditText
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/firstNameInput"
+        android:layout_gravity="center_horizontal"
+        android:hint="First Name..." />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/lastNameInput"
+        android:layout_gravity="center_horizontal"
+        android:hint="Last Name..." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Select Role:"
+        android:id="@+id/textView2" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/roleSelect"
+        android:entries="@array/roles" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
         android:id="@+id/accessCodeInput"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:hint="Enter access code" />
+        android:layout_gravity="center_horizontal"
+        android:hint="Access Code..." />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/numberOfOccupants"
+        android:layout_gravity="center_horizontal"
+        android:hint="Number of Occupants..." />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="A pet resides on my property"
+        android:id="@+id/hasPets" />
 
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Register"
-        android:id="@+id/button13"
+        android:id="@+id/registerButton"
         android:layout_below="@+id/accessCodeInput"
         android:layout_centerHorizontal="true"
         android:onClick="login" />
-</RelativeLayout>
+
+</LinearLayout>

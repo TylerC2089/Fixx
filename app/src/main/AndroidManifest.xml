@@ -40,7 +40,7 @@
         <activity android:name=".timePickerActivity" />
         <activity android:name=".categorySelectActivity" />
         <activity android:name=".loginActivity" />
-        <activity android:name=".scheduledDatesActivity"></activity>
+        <activity android:name=".scheduledDatesActivity" />
     </application>
 
 </manifest>

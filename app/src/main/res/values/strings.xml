@@ -17,4 +17,6 @@
     <string name="title_activity_camera_capture">CameraCaptureActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_tenant_login">TenantLoginActivity</string>
+    <string name="title_activity_technician_login">TechnicianLoginActivity</string>
 </resources>

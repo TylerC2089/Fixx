@@ -4,4 +4,9 @@
         <item>Incomplete</item>
         <item>Complete</item>
     </string-array>
+
+    <string-array name="roles">
+        <item>Tenant</item>
+        <item>Technician</item>
+    </string-array>
 </resources>

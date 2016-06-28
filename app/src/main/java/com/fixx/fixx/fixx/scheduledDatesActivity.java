@@ -13,6 +13,13 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.amazonaws.handlers.AsyncHandler;
+import com.amazonaws.mobileconnectors.cognito.Dataset;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.BatchGetItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.CalendarDayEvent;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -44,6 +51,13 @@ public class scheduledDatesActivity extends ActionBarActivity {
     String[] statusArray;
     List<String> statusList = new ArrayList<>();
 
+    // Variables for Dynamo DB
+    private AmazonDynamoDBAsyncClient dynamo = MainMenuActivity.dynamo;
+
+    Dataset userInfo = MainMenuActivity.userInfo;
+    int numberOfRequests = Integer.valueOf(userInfo.get("RequestNumber"));
+    String identityID = MainMenuActivity.credentialsProvider.getIdentityId();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,8 +81,59 @@ public class scheduledDatesActivity extends ActionBarActivity {
             statusList.add(s);
         }
 
+        // TODO: Add logic for downloading and displaying all scheduled dates using the below line
         addDate("6-4-2016", "15:00", "Leaking pipe needs fixed.", "Anton", "Incomplete", "http://zblogged.com/wp-content/uploads/2015/11/5.png");
+        for (int i = 0; i < numberOfRequests; i++) {
+            Map<String, AttributeValue> key = new HashMap<>();
+            key.put("RequestID", new AttributeValue(identityID + String.valueOf(i)));
+            GetItemRequest req = new GetItemRequest("FixxRequests", key);
+            dynamo.getItemAsync(req, new AsyncHandler<GetItemRequest, GetItemResult>() {
+                @Override
+                public void onError(Exception e) {
+                    System.out.println("Error: Could not get job request");
+                }
 
+                @Override
+                public void onSuccess(GetItemRequest request, GetItemResult getItemResult) {
+                    final Map<String, AttributeValue> requestItem = getItemResult.getItem();
+                    if (requestItem.get("TechnicianID").getS().equals(" ")) {
+                        String times = "";
+                        String dateTimes[] = requestItem.get("RepairDate").getS().split("~|~");
+                        for (int i = 0; i < dateTimes.length; i++) {
+                            String dateTime = dateTimes[i];
+                            String date = dateTime.substring(0, dateTime.indexOf(" "));
+                            times = dateTime.substring(dateTime.indexOf(" "));
+                            addDate(date, times, requestItem.get("Details").getS(),
+                                    "", requestItem.get("Status").getS(), "");
+                        }
+                    }
+                    Map<String, AttributeValue> key = new HashMap<String, AttributeValue>(1);
+                    key.put("UserID", requestItem.get("TechnicianID"));
+                    GetItemRequest req = new GetItemRequest("FixxUsers", key);
+                    dynamo.getItemAsync(req, new AsyncHandler<GetItemRequest, GetItemResult>() {
+                        @Override
+                        public void onError(Exception e) {
+                            System.out.println("Error: Could not get technician");
+                        }
+
+                        @Override
+                        public void onSuccess(GetItemRequest request, GetItemResult getItemResult) {
+                            Map<String, AttributeValue> technicianItem = getItemResult.getItem();
+                            String times = "";
+                            String dateTimes[] = requestItem.get("RepairDate").getS().split("~|~");
+                            for (int i = 0; i < dateTimes.length; i++) {
+                                String dateTime = dateTimes[i];
+                                String date = dateTime.substring(0, dateTime.indexOf(" "));
+                                times = dateTime.substring(dateTime.indexOf(" "));
+                                addDate(date, times, requestItem.get("Details").getS(),
+                                        technicianItem.get("FirstName").getS() + " " + technicianItem.get("LastName").getS(),
+                                        requestItem.get("Status").getS(), "");
+                            }
+                        }
+                    });
+                }
+            });
+        }
         // Create global configuration and initialize ImageLoader with this config
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
         ImageLoader.getInstance().init(config);
@@ -95,7 +160,7 @@ public class scheduledDatesActivity extends ActionBarActivity {
         });
     }
 
-    private void addDate (String date, String time, String description, String techName, String status, String imageURL) {
+    private void addDate (String date, String time, String description, String techName, String status, String techImageURL) {
         // Add the date to the calendar
         Date formattedDate = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("M-d-yyyy");
@@ -110,7 +175,7 @@ public class scheduledDatesActivity extends ActionBarActivity {
         jobData.put("Description", description);
         jobData.put("TechName", techName);
         jobData.put("Status", status);
-        jobData.put("TechImageURL", imageURL);
+        jobData.put("TechImageURL", techImageURL);
         scheduledDates.put(formattedDate, jobData);
     }
 
