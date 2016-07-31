@@ -171,13 +171,13 @@ public class timePickerActivity extends ActionBarActivity {
                 filePath = path + "Image" + String.valueOf(index) + ".jpg";
                 image = new File(filePath);
             }
-            mediaID = mediaID.substring(0, mediaID.length() - 2);
+            mediaID = mediaID.substring(0, mediaID.length() - 1);
         } else if (mediaType.equals("video")) {
             String filePath = path + "Video.3gp";
             s3PutObjectAsync putObjectAsync = new s3PutObjectAsync();
             putObjectAsync.execute("fixx-media", identityID + String.valueOf(requestNumber) + "Video.3gp",
                     filePath);
-            mediaID = identityID + String.valueOf(requestNumber) + "Video.jpg";
+            mediaID = identityID + String.valueOf(requestNumber) + "Video.3gp";
         }
         return mediaID;
     }
@@ -196,22 +196,24 @@ public class timePickerActivity extends ActionBarActivity {
 
     public void uploadJobRequest(View v) {
         String mediaID = publishMedia(mode);
+        System.out.println(mediaID);
         if (mode.equals("video")) {
             uploadMedia(mediaID, "https://s3.amazonaws.com/fixx-media/" + mediaID, propertyID, mode,
                     identityID);
         } else if (mode.equals("picture")) {
             String[] pictureIDs = mediaID.split(",");
             for (String s : pictureIDs) {
-                uploadMedia(mediaID, "https://s3.amazonaws.com/fixx-media/" + s, propertyID, mode,
+                System.out.println(s);
+                uploadMedia(s, "https://s3.amazonaws.com/fixx-media/" + s, propertyID, mode,
                         identityID);
             }
         }
         String datesList = "";
         for (int i = 0; i < dates.length; i++) {
-            datesList = datesList + dates[i];
+            datesList = datesList + dates[i] + " ";
             datesList = datesList + dateTimeMap.get(dates[i]) + "~|~";
         }
-        datesList = datesList.substring(0, datesList.length() - 2);
+        datesList = datesList.substring(0, datesList.length() - 3);
         uploadRequest(identityID + String.valueOf(requestNumber), category, description, mediaID,
                 propertyID, datesList, "Incomplete", " ", identityID);
         requestNumber++;
@@ -221,7 +223,12 @@ public class timePickerActivity extends ActionBarActivity {
     public void setTime (View v) {
         System.out.println("time changed");
         String date = spinner.getSelectedItem().toString();
-        String time = String.valueOf(timePicker.getCurrentHour()) + ":" + String.valueOf(timePicker.getCurrentMinute());
+        String hour = String.valueOf(timePicker.getCurrentHour());
+        String minute = String.valueOf(timePicker.getCurrentMinute());
+        if (minute.length() < 2) {
+            minute = "0" + minute;
+        }
+        String time = hour + ":" + minute;
         dateTimeMap.put(date, time);
     }
 }

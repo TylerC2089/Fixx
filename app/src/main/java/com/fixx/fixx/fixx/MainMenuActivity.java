@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.auth.policy.resources.S3BucketResource;
@@ -26,8 +27,12 @@ import java.util.List;
 
 public class MainMenuActivity extends ActionBarActivity {
 
+    Button fixxAProblem;
+    Button scheduledDates;
+
     // Variables for Amazon Cognito and user authentication
     public static CognitoCachingCredentialsProvider credentialsProvider;
+    public static String identityID = " ";
     public static Dataset userInfo;
     private CognitoSyncManager syncManager;
     private String firstName;
@@ -43,12 +48,16 @@ public class MainMenuActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
 
+        fixxAProblem = (Button)findViewById(R.id.fixxProblem);
+        scheduledDates = (Button)findViewById(R.id.scheduledDates);
+
         // TODO: replace identity pool ID
         credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),    /* get the context for the application */
                 "us-east-1:c74e2b8e-7104-4a51-b028-70596fb9dbc8",    /* Identity Pool ID */
                 Regions.US_EAST_1           /* Region for your identity pool--US_EAST_1 or EU_WEST_1*/
         );
+        getIdentityIDAsync.execute();
 
         // Link DynamoDB Client to the Cognito credentials
         dynamo = new AmazonDynamoDBAsyncClient(credentialsProvider);
@@ -88,16 +97,54 @@ public class MainMenuActivity extends ActionBarActivity {
             Intent loginIntent = new Intent(getApplicationContext(), loginActivity.class);
             startActivity(loginIntent);
             finish();
+        } else {
+            if (userInfo.get("RoleID").equals("Technician")) {
+                fixxAProblem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openTechInbox();
+                    }
+                });
+                scheduledDates.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openTechCalendar();
+                    }
+                });
+            } else if (userInfo.get("RoleID").equals("Tenant")) {
+                fixxAProblem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openCamera();
+                    }
+                });
+                scheduledDates.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openCalendar();
+                    }
+                });
+            }
         }
     }
 
-    public void openCamera (View v) {
+    private void openCamera () {
         Intent cameraIntent = new Intent(this, CameraCaptureActivity.class);
         startActivity(cameraIntent);
     }
 
-    public void openCalendar (View v) {
+    private void openCalendar () {
         Intent calendarIntent = new Intent(this, scheduledDatesActivity.class);
+        startActivity(calendarIntent);
+    }
+
+    private void openTechInbox () {
+        Intent inboxIntent = new Intent(this, technicianInbox.class);
+        startActivity(inboxIntent);
+    }
+
+    private void openTechCalendar () {
+        Intent calendarIntent = new Intent(this, technicianCalendar.class);
         startActivity(calendarIntent);
     }
 
@@ -105,4 +152,12 @@ public class MainMenuActivity extends ActionBarActivity {
         Dataset userData = manager.openOrCreateDataset(dataSetKey);
         return userData;
     }
+
+    private AsyncTask getIdentityIDAsync = new AsyncTask() {
+        @Override
+        protected Object doInBackground(Object[] params) {
+            identityID = credentialsProvider.getIdentityId();
+            return false;
+        }
+    };
 }

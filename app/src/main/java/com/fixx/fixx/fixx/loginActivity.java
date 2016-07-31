@@ -12,6 +12,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.mobileconnectors.cognito.CognitoSyncManager;
 import com.amazonaws.mobileconnectors.cognito.Dataset;
 import com.amazonaws.mobileconnectors.cognito.Record;
@@ -23,6 +24,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClient;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.PutItemResult;
 import com.amazonaws.services.simpledb.model.Attribute;
 
 import java.util.HashMap;
@@ -42,7 +44,7 @@ public class loginActivity extends ActionBarActivity {
     // Variables for Amazon Cognito and user authentication
     private Dataset userInfo = MainMenuActivity.userInfo;
     //private CognitoSyncManager syncManager;
-    private String identityID = MainMenuActivity.credentialsProvider.getIdentityId();
+    private String identityID = MainMenuActivity.identityID;
 
     // Variables for Dynamo DB
     private AmazonDynamoDBAsyncClient dynamo = MainMenuActivity.dynamo;
@@ -91,14 +93,25 @@ public class loginActivity extends ActionBarActivity {
     private void uploadUserToDatabase (String firstName, String lastName, String roleID, String userID) {
         Map<String, AttributeValue> attributes = new HashMap<>(7);
         attributes.put("UserID", new AttributeValue(userID));
-        attributes.put("PropertyID", new AttributeValue(""));
+        attributes.put("PropertyID", new AttributeValue(" "));
         attributes.put("FirstName", new AttributeValue(firstName));
         attributes.put("LastName", new AttributeValue(lastName));
-        attributes.put("HasPet", new AttributeValue(""));
-        attributes.put("NumberOfOccupants", new AttributeValue(""));
+        attributes.put("HasPet", new AttributeValue(" "));
+        attributes.put("NumberOfOccupants", new AttributeValue(" "));
         attributes.put("RoleID", new AttributeValue(roleID));
         PutItemRequest request = new PutItemRequest("FixxUsers", attributes);
-        dynamo.putItemAsync(request);
+        dynamo.putItemAsync(request, new AsyncHandler<PutItemRequest, PutItemResult>() {
+            @Override
+            public void onError(Exception e) {
+                System.out.println("Could not upload user to database: " + e.getMessage());
+            }
+
+            @Override
+            public void onSuccess(PutItemRequest request, PutItemResult putItemResult) {
+                returnToMainMenu();
+                finish();
+            }
+        });
     }
 
     private void uploadUserToDatabase (String firstName, String lastName, String roleID,
@@ -113,7 +126,18 @@ public class loginActivity extends ActionBarActivity {
         attributes.put("NumberOfOccupants", new AttributeValue(numberOfOccupants));
         attributes.put("RoleID", new AttributeValue(roleID));
         PutItemRequest request = new PutItemRequest("FixxUsers", attributes);
-        dynamo.putItemAsync(request);
+        dynamo.putItemAsync(request, new AsyncHandler<PutItemRequest, PutItemResult>() {
+            @Override
+            public void onError(Exception e) {
+                System.out.println("Could not upload user to database: " + e.getMessage());
+            }
+
+            @Override
+            public void onSuccess(PutItemRequest request, PutItemResult putItemResult) {
+                returnToMainMenu();
+                finish();
+            }
+        });
     }
 
     public void login (View v) {
@@ -125,41 +149,63 @@ public class loginActivity extends ActionBarActivity {
             userInfo.put("PropertyID", accessCodeInput.getText().toString());
             userInfo.put("NumberOfOccupants", numberOfOccupants.getText().toString());
             userInfo.put("HasPet", String.valueOf(hasPetCheckBox.isChecked()));
+            userInfo.synchronizeOnConnectivity(new Dataset.SyncCallback() {
+                @Override
+                public void onSuccess(Dataset dataset, List<Record> list) {
+                }
+
+                @Override
+                public boolean onConflict(Dataset dataset, List<SyncConflict> list) {
+                    return false;
+                }
+
+                @Override
+                public boolean onDatasetDeleted(Dataset dataset, String s) {
+                    return false;
+                }
+
+                @Override
+                public boolean onDatasetsMerged(Dataset dataset, List<String> list) {
+                    return false;
+                }
+
+                @Override
+                public void onFailure(DataStorageException e) {
+                }
+            });
             uploadUserToDatabase(firstNameInput.getText().toString(),
                     lastNameInput.getText().toString(), roleSelect.getSelectedItem().toString(),
                     identityID, accessCodeInput.getText().toString(), hasPetCheckBox.isChecked(),
                     numberOfOccupants.getText().toString());
         } else if (roleSelect.getSelectedItem().toString().equals("Technician")) {
+            userInfo.synchronizeOnConnectivity(new Dataset.SyncCallback() {
+                @Override
+                public void onSuccess(Dataset dataset, List<Record> list) {
+                }
+
+                @Override
+                public boolean onConflict(Dataset dataset, List<SyncConflict> list) {
+                    return false;
+                }
+
+                @Override
+                public boolean onDatasetDeleted(Dataset dataset, String s) {
+                    return false;
+                }
+
+                @Override
+                public boolean onDatasetsMerged(Dataset dataset, List<String> list) {
+                    return false;
+                }
+
+                @Override
+                public void onFailure(DataStorageException e) {
+                }
+            });
             uploadUserToDatabase(firstNameInput.getText().toString(),
                     lastNameInput.getText().toString(), roleSelect.getSelectedItem().toString(),
                     identityID);
         }
-        userInfo.synchronizeOnConnectivity(new Dataset.SyncCallback() {
-            @Override
-            public void onSuccess(Dataset dataset, List<Record> list) {
-            }
-
-            @Override
-            public boolean onConflict(Dataset dataset, List<SyncConflict> list) {
-                return false;
-            }
-
-            @Override
-            public boolean onDatasetDeleted(Dataset dataset, String s) {
-                return false;
-            }
-
-            @Override
-            public boolean onDatasetsMerged(Dataset dataset, List<String> list) {
-                return false;
-            }
-
-            @Override
-            public void onFailure(DataStorageException e) {
-            }
-        });
-        returnToMainMenu();
-        finish();
     }
 
     private Dataset getUserInfo (CognitoSyncManager manager, String dataSetKey) {

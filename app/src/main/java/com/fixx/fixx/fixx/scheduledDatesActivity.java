@@ -53,9 +53,8 @@ public class scheduledDatesActivity extends ActionBarActivity {
 
     // Variables for Dynamo DB
     private AmazonDynamoDBAsyncClient dynamo = MainMenuActivity.dynamo;
-
     Dataset userInfo = MainMenuActivity.userInfo;
-    int numberOfRequests = Integer.valueOf(userInfo.get("RequestNumber"));
+    int numberOfRequests = 0;
     String identityID = MainMenuActivity.credentialsProvider.getIdentityId();
 
     @Override
@@ -81,11 +80,14 @@ public class scheduledDatesActivity extends ActionBarActivity {
             statusList.add(s);
         }
 
+        numberOfRequests = Integer.valueOf(userInfo.get("RequestNumber"));
+
         // TODO: Add logic for downloading and displaying all scheduled dates using the below line
         addDate("6-4-2016", "15:00", "Leaking pipe needs fixed.", "Anton", "Incomplete", "http://zblogged.com/wp-content/uploads/2015/11/5.png");
         for (int i = 0; i < numberOfRequests; i++) {
             Map<String, AttributeValue> key = new HashMap<>();
             key.put("RequestID", new AttributeValue(identityID + String.valueOf(i)));
+            System.out.println(identityID + String.valueOf(i));
             GetItemRequest req = new GetItemRequest("FixxRequests", key);
             dynamo.getItemAsync(req, new AsyncHandler<GetItemRequest, GetItemResult>() {
                 @Override
@@ -104,33 +106,37 @@ public class scheduledDatesActivity extends ActionBarActivity {
                             String date = dateTime.substring(0, dateTime.indexOf(" "));
                             times = dateTime.substring(dateTime.indexOf(" "));
                             addDate(date, times, requestItem.get("Details").getS(),
-                                    "", requestItem.get("Status").getS(), "");
+                                    " ", requestItem.get("Status").getS(), "");
                         }
-                    }
-                    Map<String, AttributeValue> key = new HashMap<String, AttributeValue>(1);
-                    key.put("UserID", requestItem.get("TechnicianID"));
-                    GetItemRequest req = new GetItemRequest("FixxUsers", key);
-                    dynamo.getItemAsync(req, new AsyncHandler<GetItemRequest, GetItemResult>() {
-                        @Override
-                        public void onError(Exception e) {
-                            System.out.println("Error: Could not get technician");
-                        }
-
-                        @Override
-                        public void onSuccess(GetItemRequest request, GetItemResult getItemResult) {
-                            Map<String, AttributeValue> technicianItem = getItemResult.getItem();
-                            String times = "";
-                            String dateTimes[] = requestItem.get("RepairDate").getS().split("~|~");
-                            for (int i = 0; i < dateTimes.length; i++) {
-                                String dateTime = dateTimes[i];
-                                String date = dateTime.substring(0, dateTime.indexOf(" "));
-                                times = dateTime.substring(dateTime.indexOf(" "));
-                                addDate(date, times, requestItem.get("Details").getS(),
-                                        technicianItem.get("FirstName").getS() + " " + technicianItem.get("LastName").getS(),
-                                        requestItem.get("Status").getS(), "");
+                    } else {
+                        Map<String, AttributeValue> key = new HashMap<String, AttributeValue>(1);
+                        key.put("UserID", requestItem.get("TechnicianID"));
+                        GetItemRequest req = new GetItemRequest("FixxUsers", key);
+                        dynamo.getItemAsync(req, new AsyncHandler<GetItemRequest, GetItemResult>() {
+                            @Override
+                            public void onError(Exception e) {
+                                System.out.println("Error: Could not get technician");
                             }
-                        }
-                    });
+
+                            @Override
+                            public void onSuccess(GetItemRequest request, GetItemResult getItemResult) {
+                                Map<String, AttributeValue> technicianItem = getItemResult.getItem();
+                                String times = "";
+                                String dateTimes[] = requestItem.get("RepairDate").getS().split("~|~");
+                                System.out.println("Got the Technician User!");
+                                for (int i = 0; i < dateTimes.length; i++) {
+                                    System.out.println("In the loop");
+                                    String dateTime = dateTimes[i];
+                                    String date = dateTime.substring(0, dateTime.indexOf(" "));
+                                    times = dateTime.substring(dateTime.indexOf(" "));
+                                    addDate(date, times, requestItem.get("Details").getS(),
+                                            technicianItem.get("FirstName").getS() + " " + technicianItem.get("LastName").getS(),
+                                            requestItem.get("Status").getS(), "");
+                                }
+                            }
+                        });
+                    }
+                    calendarView.refreshDrawableState();
                 }
             });
         }

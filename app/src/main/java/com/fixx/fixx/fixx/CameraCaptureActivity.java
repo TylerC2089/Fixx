@@ -12,6 +12,7 @@ import android.media.MediaRecorder;
 import android.os.Environment;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -115,19 +116,20 @@ public class CameraCaptureActivity extends Activity {
             public void surfaceCreated(SurfaceHolder holder) {
                 // Open the device camera
                 camera = Camera.open();
-
                 // Set preview surface for the camera
                 try {
                     camera.setPreviewDisplay(holder);
                 } catch (IOException exception) {
                     camera.release();
                 }
+                camera.setDisplayOrientation(90);
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                 // Start outputting the camera feed to the preview surface
                 camera.startPreview();
+                camera.setDisplayOrientation(90);
             }
 
             @Override
@@ -138,7 +140,6 @@ public class CameraCaptureActivity extends Activity {
                 camera.release();
             }
         });
-
     }
 
     private void captureImage () {
@@ -173,6 +174,8 @@ public class CameraCaptureActivity extends Activity {
                 if (pictureCountdown <= 0) {
                     startSubmissionActivity("picture");
                 }
+                camera.stopPreview();
+                camera.startPreview();
             }
         });
     }
@@ -223,6 +226,10 @@ public class CameraCaptureActivity extends Activity {
         categorySelectIntent.putExtra("mode", mode);
         startActivity(categorySelectIntent);
         finish();
+    }
+
+    private int getScreenOrientation () {
+        return this.getWindowManager().getDefaultDisplay().getRotation();
     }
 
     @Override

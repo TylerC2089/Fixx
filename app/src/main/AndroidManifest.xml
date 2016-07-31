@@ -41,6 +41,9 @@
         <activity android:name=".categorySelectActivity" />
         <activity android:name=".loginActivity" />
         <activity android:name=".scheduledDatesActivity" />
+        <activity android:name=".technicianInbox" />
+        <activity android:name=".requestView" />
+        <activity android:name=".technicianCalendar"></activity>
     </application>
 
 </manifest>

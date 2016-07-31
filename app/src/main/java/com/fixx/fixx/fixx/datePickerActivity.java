@@ -56,7 +56,7 @@ public class datePickerActivity extends ActionBarActivity {
             @Override
             public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
                 // Format date
-                String date = String.valueOf(month) + "/" + String.valueOf(dayOfMonth) + "/" + String.valueOf(year);
+                String date = String.valueOf(month) + "-" + String.valueOf(dayOfMonth) + "-" + String.valueOf(year);
                 if (!selectedDates.contains(date)) {
                     // Add date to selected dates
                     selectedDates.add(date);
