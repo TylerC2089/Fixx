@@ -9,6 +9,24 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.fixx.fixx.fixx.requestView">
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@+id/horizontalScrollView"
+        android:layout_marginBottom="10dp"
+        android:id="@+id/videoLayout">
+
+        <VideoView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/videoView2"
+            android:layout_alignBottom="@+id/horizontalScrollView"
+            android:layout_centerInParent="true"
+            android:layout_gravity="top|left|bottom|center|right" />
+
+    </LinearLayout>
+
     <HorizontalScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -48,10 +66,6 @@
                 android:layout_marginLeft="10dp"
                 android:scaleType="center" />
 
-            <VideoView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/videoView2" />
         </LinearLayout>
     </HorizontalScrollView>
 

@@ -1,12 +1,15 @@
 package com.fixx.fixx.fixx;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.opengl.Visibility;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -134,7 +137,14 @@ public class requestView extends ActionBarActivity {
                     image3.setVisibility(View.VISIBLE);
                 }
             } else if (mediaType.equals("video")) {
-                video.setVideoPath(url);
+                //Use a media controller so that you can scroll the video contents
+                //and also to pause, start the video.
+                MediaController mediaController = new MediaController(this);
+                video.setVideoURI(Uri.parse(url));
+                mediaController.setAnchorView(video);
+                mediaController.setMediaPlayer(video);
+                video.setMediaController(mediaController);
+                video.start();
             }
         }
     }
@@ -162,6 +172,6 @@ public class requestView extends ActionBarActivity {
     }
 
     public void declineJob (View v) {
-
+        finish();
     }
 }

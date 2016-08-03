@@ -32,7 +32,7 @@ public class MainMenuActivity extends ActionBarActivity {
 
     // Variables for Amazon Cognito and user authentication
     public static CognitoCachingCredentialsProvider credentialsProvider;
-    public static String identityID = " ";
+    public static String identityID = "";
     public static Dataset userInfo;
     private CognitoSyncManager syncManager;
     private String firstName;
@@ -57,7 +57,6 @@ public class MainMenuActivity extends ActionBarActivity {
                 "us-east-1:c74e2b8e-7104-4a51-b028-70596fb9dbc8",    /* Identity Pool ID */
                 Regions.US_EAST_1           /* Region for your identity pool--US_EAST_1 or EU_WEST_1*/
         );
-        getIdentityIDAsync.execute();
 
         // Link DynamoDB Client to the Cognito credentials
         dynamo = new AmazonDynamoDBAsyncClient(credentialsProvider);
@@ -91,13 +90,11 @@ public class MainMenuActivity extends ActionBarActivity {
             }
         });
 
+        getIdentityIDAsync.execute();
+
         firstName = userInfo.get("FirstName");
         System.out.println("FirstName=" + firstName);
-        if (firstName == null) {
-            Intent loginIntent = new Intent(getApplicationContext(), loginActivity.class);
-            startActivity(loginIntent);
-            finish();
-        } else {
+        if (firstName != null) {
             if (userInfo.get("RoleID").equals("Technician")) {
                 fixxAProblem.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -129,23 +126,31 @@ public class MainMenuActivity extends ActionBarActivity {
     }
 
     private void openCamera () {
-        Intent cameraIntent = new Intent(this, CameraCaptureActivity.class);
-        startActivity(cameraIntent);
+        if (!identityID.equals("")) {
+            Intent cameraIntent = new Intent(this, CameraCaptureActivity.class);
+            startActivity(cameraIntent);
+        }
     }
 
     private void openCalendar () {
-        Intent calendarIntent = new Intent(this, scheduledDatesActivity.class);
-        startActivity(calendarIntent);
+        if (!identityID.equals("")) {
+            Intent calendarIntent = new Intent(this, scheduledDatesActivity.class);
+            startActivity(calendarIntent);
+        }
     }
 
     private void openTechInbox () {
-        Intent inboxIntent = new Intent(this, technicianInbox.class);
-        startActivity(inboxIntent);
+        if (!identityID.equals("")) {
+            Intent inboxIntent = new Intent(this, technicianInbox.class);
+            startActivity(inboxIntent);
+        }
     }
 
     private void openTechCalendar () {
-        Intent calendarIntent = new Intent(this, technicianCalendar.class);
-        startActivity(calendarIntent);
+        if (!identityID.equals("")) {
+            Intent calendarIntent = new Intent(this, technicianCalendar.class);
+            startActivity(calendarIntent);
+        }
     }
 
     private Dataset getUserInfo (CognitoSyncManager manager, String dataSetKey) {
@@ -157,7 +162,13 @@ public class MainMenuActivity extends ActionBarActivity {
         @Override
         protected Object doInBackground(Object[] params) {
             identityID = credentialsProvider.getIdentityId();
-            return false;
+            firstName = userInfo.get("FirstName");
+            if (firstName == null) {
+                Intent loginIntent = new Intent(getApplicationContext(), loginActivity.class);
+                startActivity(loginIntent);
+                finish();
+            }
+            return true;
         }
     };
 }

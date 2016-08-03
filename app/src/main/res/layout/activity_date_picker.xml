@@ -31,11 +31,11 @@
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Next"
+        android:text="Submit"
         android:id="@+id/button6"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:onClick="next" />
+        android:onClick="uploadJobRequest" />
 
     <Button
         style="?android:attr/buttonStyleSmall"

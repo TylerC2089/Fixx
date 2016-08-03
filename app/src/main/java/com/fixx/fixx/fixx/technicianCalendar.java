@@ -15,8 +15,18 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.mobileconnectors.cognito.Dataset;
+import com.amazonaws.mobileconnectors.cognito.Record;
+import com.amazonaws.mobileconnectors.cognito.SyncConflict;
+import com.amazonaws.mobileconnectors.cognito.exceptions.DataStorageException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
+import com.amazonaws.services.iot.model.Action;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +51,7 @@ public class technicianCalendar extends ActionBarActivity {
     // Date -> hourMap, hourMap: hour -> jobRequest
     Map<String, Map<String, Map<String, String>>> calendarModel = new HashMap<>();
     List<String> scheduledDates = new ArrayList<>();
+    String activeRequestID = "";
 
     // Variables for Dynamo DB
     private AmazonDynamoDBAsyncClient dynamo = MainMenuActivity.dynamo;
@@ -58,7 +69,7 @@ public class technicianCalendar extends ActionBarActivity {
         prevDay = (Button)findViewById(R.id.prevButton);
 
         String[] requestArray = userInfo.get("RequestRegistry").toString().split(",");
-        String activeRequestID = requestArray[requestArray.length - 1];
+        activeRequestID = requestArray[requestArray.length - 1];
 
         for (int i = 0; i < requestArray.length; i++) {
             String requestID = requestArray[i];
@@ -120,7 +131,7 @@ public class technicianCalendar extends ActionBarActivity {
                 public void onClick(View v) {
                     int prevDateIndex = scheduledDates.indexOf(dateText.getText()) - 1;
                     if (prevDateIndex >= 0) {
-                        String date = scheduledDates.get(scheduledDates.indexOf(dateText.getText()));
+                        String date = scheduledDates.get(prevDateIndex);
                         refreshDateEvents(date);
                     }
                 }
@@ -134,6 +145,14 @@ public class technicianCalendar extends ActionBarActivity {
                 }
             });
         }
+
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
+                refreshDateEvents(String.valueOf(month) + "-" + String.valueOf(dayOfMonth) + "-" + String.valueOf(year));
+                calendarView.setVisibility(View.INVISIBLE);
+            }
+        });
 
         // Setup selection area
         Point screenBounds = new Point();
@@ -187,12 +206,58 @@ public class technicianCalendar extends ActionBarActivity {
                         Point screenBounds = new Point();
                         getWindowManager().getDefaultDisplay().getSize(screenBounds);
                         selectionArea = new Rect(0, 0, screenBounds.x, 0);
-                        // Clear the active job request
-                        activeJobRequest = null;
+                        updateJobRequestWithTimeRange(activeRequestID,
+                                String.valueOf(requestStartTime) + ":00-" + String.valueOf(requestEndTime) + ":00");
                 }
             }
         }
         return false;
+    }
+
+    private void updateJobRequestWithTimeRange (String requestID, String timeRange) {
+        userInfo.put(requestID + ":TimeRange", timeRange);
+        userInfo.synchronizeOnConnectivity(new Dataset.SyncCallback() {
+            @Override
+            public void onSuccess(Dataset dataset, List<Record> list) {
+
+            }
+
+            @Override
+            public boolean onConflict(Dataset dataset, List<SyncConflict> list) {
+                return false;
+            }
+
+            @Override
+            public boolean onDatasetDeleted(Dataset dataset, String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onDatasetsMerged(Dataset dataset, List<String> list) {
+                return false;
+            }
+
+            @Override
+            public void onFailure(DataStorageException e) {
+
+            }
+        });
+        Map<String, AttributeValueUpdate> updates = new HashMap<>(1);
+        updates.put("TimeRange", new AttributeValueUpdate(new AttributeValue(timeRange), AttributeAction.PUT));
+        Map<String, AttributeValue> key = new HashMap<>(1);
+        key.put("RequestID", new AttributeValue(requestID));
+        UpdateItemRequest req = new UpdateItemRequest("FixxRequests", key, updates);
+        dynamo.updateItemAsync(req, new AsyncHandler<UpdateItemRequest, UpdateItemResult>() {
+            @Override
+            public void onError(Exception e) {
+
+            }
+
+            @Override
+            public void onSuccess(UpdateItemRequest request, UpdateItemResult updateItemResult) {
+                finish();
+            }
+        });
     }
 
     private void refreshDateEvents (String date) {

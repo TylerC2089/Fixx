@@ -1,12 +1,16 @@
 package com.fixx.fixx.fixx;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
@@ -28,8 +32,10 @@ import java.util.Map;
 
 public class technicianInbox extends ActionBarActivity {
 
-    private ListView list;
-    private ArrayAdapter adapter;
+    Context activityContext;
+
+    private LinearLayout inboxContainer;
+
     private List<Map<String, AttributeValue>> jobRequests = new ArrayList<>();
     private List<String> items = new ArrayList<>();
 
@@ -43,15 +49,9 @@ public class technicianInbox extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_technician_inbox);
 
-        list = (ListView)findViewById(R.id.listView);
-        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, items);
-        list.setAdapter(adapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                viewJobRequest(jobRequests.get(position));
-            }
-        });
+        activityContext = this;
+
+        inboxContainer = (LinearLayout)findViewById(R.id.inboxContainer);
 
         ScanRequest req = new ScanRequest("FixxRequests");
         req.addExpressionAttributeNamesEntry("#T", "TechnicianID");
@@ -100,12 +100,34 @@ public class technicianInbox extends ActionBarActivity {
                                     jobRequest.putAll(propertyItem);
                                     jobRequests.add(jobRequest);
                                     items.add(jobRequest.get("Details").getS());
-                                    adapter.notifyDataSetChanged();
                                 }
                             });
                         }
                     });
                 }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final ViewGroup vg = (ViewGroup)inboxContainer;
+                        for (int i = 0; i < vg.getChildCount(); i++) {
+                            vg.removeView(vg.getChildAt(i));
+                        }
+                        for (int i = 0; i < items.size(); i++) {
+                            final Button entry = new Button(activityContext);
+                            entry.setWidth(inboxContainer.getWidth());
+                            entry.setHeight(100);
+                            entry.setText(items.get(i).toString());
+                            entry.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    int index = vg.indexOfChild(entry);
+                                    viewJobRequest(jobRequests.get(index));
+                                }
+                            });
+                            vg.addView(entry);
+                        }
+                    }
+                });
             }
         });
     }
